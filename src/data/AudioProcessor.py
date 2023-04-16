@@ -25,6 +25,9 @@ class AudioPreprocessor:
         if not os.path.exists(target_directory):
             os.makedirs(target_directory)
 
+    def normalize_file_path(self, path):
+        return path.replace("\\", "/")
+
     def preprocess_audio(self, file_path):
         audio, sr = librosa.load(file_path, sr=self.sample_rate)
 
@@ -43,13 +46,15 @@ class AudioPreprocessor:
             return None
         elif audio_length > fixed_length_samples:
             audio = audio[:fixed_length_samples]
-        bird_class = file_path.split("/")[2]
+        
+        bird_class = file_path.split("/")[-2]
         target_file_path = os.path.join(
             self.target_directory, bird_class, os.path.basename(file_path)
         )
+
         # librosa.output.write_wav(target_file_path, audio, sr)
         sf.write(target_file_path, audio, sr)
-        return target_file_path
+        return self.normalize_file_path(target_file_path)
 
     def create_spectrogram(self, file_path, n_fft=2048, hop_length=512):
         y, sr = librosa.load(file_path, sr=None, mono=True)
@@ -104,9 +109,9 @@ class AudioPreprocessor:
         plt.close()
 
     def process_directory(self):
-        for dirpath, directories, _ in os.walk(self.source_directory):
+        for root_dir, directories, _ in os.walk(self.source_directory):
             for directory in directories:
-                dirpath = os.path.join(dirpath, directory)
+                dirpath = self.normalize_file_path(os.path.join(root_dir, directory))
                 # check if required directories exist, if not then create them
                 os.makedirs(
                     os.path.join(self.spectrogram_directory, directory), exist_ok=True
@@ -116,7 +121,7 @@ class AudioPreprocessor:
                 )
                 for file in os.listdir(dirpath):
                     try:
-                        file_path = os.path.join(dirpath, file)
+                        file_path = self.normalize_file_path(os.path.join(dirpath, file))
                         target_file_path = self.preprocess_audio(file_path)
                         if target_file_path is not None:
                             ms = self.create_mel_spectrogram(target_file_path)
@@ -125,8 +130,6 @@ class AudioPreprocessor:
                             )
                     except Exception as e:
                         print(f"Error processing file {file_path}: {e}")
-                    # lets test only for 1 file
-                    break
 
 
 if __name__ == "__main__":
