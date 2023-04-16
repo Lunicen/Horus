@@ -3,6 +3,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 class AudioPreprocessor:
@@ -119,7 +120,7 @@ class AudioPreprocessor:
                 os.makedirs(
                     os.path.join(self.target_directory, directory), exist_ok=True
                 )
-                for file in os.listdir(dirpath):
+                for file in tqdm(os.listdir(dirpath), unit="File"):
                     try:
                         file_path = self.normalize_file_path(os.path.join(dirpath, file))
                         target_file_path = self.preprocess_audio(file_path)
