@@ -2,3 +2,4 @@ librosa==0.10.0.post2
 matplotlib==3.5.3
 numpy==1.23.3
 soundfile==0.12.1
+tqdm==4.65.0
