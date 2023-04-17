@@ -1,4 +1,7 @@
 librosa==0.10.0.post2
 matplotlib==3.5.3
+noisereduce==2.0.1
 numpy==1.23.3
+pydub==0.25.1
+requests==2.28.1
 soundfile==0.12.1
