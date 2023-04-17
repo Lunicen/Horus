@@ -1,6 +1,7 @@
 import os
 import librosa
 import numpy as np
+from sklearn.model_selection import train_test_split
 import soundfile as sf
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -187,7 +188,35 @@ class AudioPreprocessor:
 
                 except Exception as e:
                     print(f"Error processing file {file_path}: {e}")
+                    
+    def split_dataset(self, source_directory, output_directory, train_size=0.7, val_size=0.2):
+        all_files = []
+        for root,_, files in os.walk(source_directory):
+            for file in files:
+                if file.endswith(".mp3"):
+                    all_files.append(os.path.join(root, file))
 
+        train_val_files, test_files = train_test_split(all_files, train_size=train_size + val_size)
+        train_files, val_files = train_test_split(train_val_files, train_size=train_size / (train_size + val_size))
+
+        sets = {
+            "train": train_files,
+            "validation": val_files,
+            "test": test_files
+        }
+
+        for set_name, files in sets.items():
+            set_path = os.path.join(output_directory, set_name)
+            os.makedirs(set_path, exist_ok=True)
+
+            for file in files:
+                file_name = os.path.basename(file)
+                bird_class = os.path.basename(os.path.dirname(file))
+
+                class_path = os.path.join(set_path, bird_class)
+                os.makedirs(class_path, exist_ok=True)
+
+                shutil.copy(file, os.path.join(class_path, file_name))
 
 if __name__ == "__main__":
     audio_preprocessor = AudioPreprocessor()

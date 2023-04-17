@@ -5,10 +5,9 @@ import scipy.stats as stats
 import glob
 import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp2d
 
-# Set the path to the directory containing the 15 folders
 base_path = Path('data/numpy')
-
 # Create a list of folder names
 folders = [os.path.join(base_path, f) for f in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, f))]
 species_names = [os.path.basename(f) for f in folders]
@@ -17,13 +16,24 @@ species_names = [os.path.basename(f) for f in folders]
 spectrogram_data = []
 species_labels = []
 
+# Function to resample spectrogram
+def resample_spectrogram(spectrogram, new_shape=(128, 128)):
+    x = np.linspace(0, spectrogram.shape[1], num=spectrogram.shape[1])
+    y = np.linspace(0, spectrogram.shape[0], num=spectrogram.shape[0])
+    interpolator = interp2d(x, y, spectrogram, kind='linear')
+    x_new = np.linspace(0, spectrogram.shape[1], num=new_shape[1])
+    y_new = np.linspace(0, spectrogram.shape[0], num=new_shape[0])
+    resampled_spectrogram = interpolator(x_new, y_new)
+    return resampled_spectrogram
+
 # Load the data from .npy files
 for idx, folder in enumerate(folders):
     file_list = glob.glob(os.path.join(folder, '*.npy'))
     
     for file in file_list:
         spectrogram = np.load(file)
-        spectrogram_data.append(spectrogram)
+        resampled_spectrogram = resample_spectrogram(spectrogram)
+        spectrogram_data.append(resampled_spectrogram)
         species_labels.append(idx)
 
 # Calculate average spectrograms for each species
@@ -45,6 +55,7 @@ for i in range(len(folders)):
 
 # Visualize the correlation matrix using a heatmap
 plt.figure(figsize=(10, 8))
+sns.set(font_scale=1.2)
 heatmap = sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', xticklabels=species_names, yticklabels=species_names)
 plt.title('Correlation Matrix of Average Spectrograms')
 plt.xlabel('Species')
