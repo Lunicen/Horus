@@ -3,7 +3,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
-
+from pathlib import Path
 
 class AudioPreprocessor:
     def __init__(
@@ -15,18 +15,13 @@ class AudioPreprocessor:
         fixed_length_seconds=5,
         normalize_volume=True,
     ):
-        self.source_directory = source_directory
-        self.target_directory = target_directory
-        self.spectrogram_directory = spectrogram_directory
+        self.source_directory = Path(source_directory)
+        self.target_directory = Path(target_directory)
+        self.spectrogram_directory = Path(spectrogram_directory)
         self.sample_rate = sample_rate
         self.fixed_length_seconds = fixed_length_seconds
         self.normalize_volume = normalize_volume
-
-        if not os.path.exists(target_directory):
-            os.makedirs(target_directory)
-
-    def normalize_file_path(self, path):
-        return path.replace("\\", "/")
+        self.target_directory.mkdir(parents=True, exist_ok=True)
 
     def preprocess_audio(self, file_path):
         audio, sr = librosa.load(file_path, sr=self.sample_rate)
@@ -41,20 +36,16 @@ class AudioPreprocessor:
         fixed_length_samples = self.fixed_length_seconds * sr
 
         if audio_length < fixed_length_samples:
-            # maybe add 0s if it's not long enough?
-            # audio = np.pad(audio, (0, fixed_length_samples - audio_length))
             return None
         elif audio_length > fixed_length_samples:
             audio = audio[:fixed_length_samples]
-        
-        bird_class = file_path.split("/")[-2]
-        target_file_path = os.path.join(
-            self.target_directory, bird_class, os.path.basename(file_path)
-        )
 
-        # librosa.output.write_wav(target_file_path, audio, sr)
+        bird_class = file_path.parent.name
+        target_file_path = self.target_directory / bird_class / file_path.name
+
+        target_file_path.parent.mkdir(parents=True, exist_ok=True)
         sf.write(target_file_path, audio, sr)
-        return self.normalize_file_path(target_file_path)
+        return target_file_path
 
     def create_spectrogram(self, file_path, n_fft=2048, hop_length=512):
         y, sr = librosa.load(file_path, sr=None, mono=True)
@@ -81,15 +72,15 @@ class AudioPreprocessor:
             hop_length=hop_length,
         )
         plt.colorbar()
-        plt.title(target_path.split("/")[-1])
+        plt.title(target_path.name)
         plt.tight_layout()
 
-        plot_path = os.path.join(
-            self.spectrogram_directory,
-            target_path.split("/")[-2],
-            target_path.split("/")[-1],
+        plot_path = (
+            self.spectrogram_directory
+            / target_path.parent.name
+            / target_path.with_suffix(".png").name
         )
-        plot_path = plot_path.replace(".mp3", ".png")
+        plot_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(plot_path)
         plt.close()
 
@@ -103,7 +94,7 @@ class AudioPreprocessor:
             hop_length=hop_length,
         )
         plt.colorbar()
-        plt.title(target_path.split("/")[-1])
+        plt.title(target_path.name)
         plt.tight_layout()
         plt.show()
         plt.close()
@@ -111,25 +102,26 @@ class AudioPreprocessor:
     def process_directory(self):
         for root_dir, directories, _ in os.walk(self.source_directory):
             for directory in directories:
-                dirpath = self.normalize_file_path(os.path.join(root_dir, directory))
-                # check if required directories exist, if not then create them
-                os.makedirs(
-                    os.path.join(self.spectrogram_directory, directory), exist_ok=True
-                )
-                os.makedirs(
-                    os.path.join(self.target_directory, directory), exist_ok=True
-                )
-                for file in os.listdir(dirpath):
-                    try:
-                        file_path = self.normalize_file_path(os.path.join(dirpath, file))
-                        target_file_path = self.preprocess_audio(file_path)
-                        if target_file_path is not None:
-                            ms = self.create_mel_spectrogram(target_file_path)
-                            self.save_mel_spectrogram(
-                                ms, target_file_path, self.sample_rate, hop_length=512
-                            )
-                    except Exception as e:
-                        print(f"Error processing file {file_path}: {e}")
+                self.process_folder(Path(root_dir) / directory)
+
+    def process_folder(self, folder_path: Path):
+        dirpath = folder_path
+        self.spectrogram_directory.mkdir(parents=True, exist_ok=True)
+        self.target_directory.mkdir(parents=True, exist_ok=True)
+        for file in os.listdir(dirpath):
+            file_path = dirpath / file
+            if os.path.isdir(file_path):
+                self.process_folder(file_path)
+            else: 
+                try:
+                    target_file_path = self.preprocess_audio(file_path)
+                    if target_file_path is not None:
+                        ms = self.create_mel_spectrogram(target_file_path)
+                        self.save_mel_spectrogram(
+                            ms, target_file_path, self.sample_rate, hop_length=512
+                        )
+                except Exception as e:
+                    print(f"Error processing file {file_path}: {e}")
 
 
 if __name__ == "__main__":
