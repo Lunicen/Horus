@@ -11,6 +11,7 @@ class AudioPreprocessor:
         source_directory="data/raw",
         target_directory="data/processed",
         spectrogram_directory="data/spectrograms",
+        numpy_dir="data/numpy",
         sample_rate=48000,
         fixed_length_seconds=5,
         normalize_volume=True,
@@ -18,6 +19,7 @@ class AudioPreprocessor:
         self.source_directory = Path(source_directory)
         self.target_directory = Path(target_directory)
         self.spectrogram_directory = Path(spectrogram_directory)
+        self.numpy_dir = Path(numpy_dir)
         self.sample_rate = sample_rate
         self.fixed_length_seconds = fixed_length_seconds
         self.normalize_volume = normalize_volume
@@ -80,9 +82,15 @@ class AudioPreprocessor:
             / target_path.parent.name
             / target_path.with_suffix(".png").name
         )
+        mel_spec_path = (
+            self.numpy_dir
+            / target_path.parent.name
+            / target_path.with_suffix(".npy").name )
         plot_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(plot_path)
         plt.close()
+        mel_spec_path.parent.mkdir(parents=True, exist_ok=True)
+        np.save(mel_spec_path, mel_spectrogram_db)
 
     def plot_mel_spectrogram(self, mel_spectrogram_db, target_path, sr, hop_length):
         plt.figure(figsize=(10, 5))
