@@ -6,7 +6,7 @@ from torchvision.models.resnet import ResNet, ResNet50_Weights
 from torchvision.models import resnet50
 
 class BirdClassifierResNet(pl.LightningModule):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, learning_rate=0.001):
         super(BirdClassifierResNet, self).__init__()
 
         # Load pre-trained ResNet50
@@ -15,6 +15,8 @@ class BirdClassifierResNet(pl.LightningModule):
         # Parameters of newly constructed modules have requires_grad=True by default
         num_ftrs = self.feature_extractor.fc.in_features
         self.feature_extractor.fc = nn.Linear(num_ftrs, num_classes)
+        
+        self.learning_rate = learning_rate
 
     def forward(self, x):
         return self.feature_extractor(x)
@@ -37,4 +39,4 @@ class BirdClassifierResNet(pl.LightningModule):
         return metrics
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
