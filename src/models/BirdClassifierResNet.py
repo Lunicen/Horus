@@ -5,6 +5,7 @@ import pytorch_lightning as pl
 from torchvision.models.resnet import ResNet, ResNet50_Weights
 from torchvision.models import resnet50
 
+
 class BirdClassifierResNet(pl.LightningModule):
     def __init__(self, num_classes, learning_rate=0.001):
         super(BirdClassifierResNet, self).__init__()
@@ -15,7 +16,7 @@ class BirdClassifierResNet(pl.LightningModule):
         # Parameters of newly constructed modules have requires_grad=True by default
         num_ftrs = self.feature_extractor.fc.in_features
         self.feature_extractor.fc = nn.Linear(num_ftrs, num_classes)
-        
+
         self.learning_rate = learning_rate
 
     def forward(self, x):
@@ -25,7 +26,9 @@ class BirdClassifierResNet(pl.LightningModule):
         x, y = batch
         logits = self(x)
         loss = F.cross_entropy(logits, y)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(
+            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
