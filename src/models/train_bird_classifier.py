@@ -3,6 +3,8 @@ from pytorch_lightning.loggers import WandbLogger
 from bird_spectrogram_classifier import BirdClassifier
 from spectrogram_dataset import BirdSpectrogramDataModule
 
+import wandb
+
 # Configuration parameters
 root_dirs = {
     "split1": "data/split_raw",
@@ -29,3 +31,4 @@ for split_name, root_dir in root_dirs.items():
 
     # Save the trained model
     trainer.save_checkpoint(f"{split_name}_bird_classifier.ckpt")
+    wandb_logger.experiment.finish()

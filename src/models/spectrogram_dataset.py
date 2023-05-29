@@ -19,6 +19,8 @@ class BirdSpectrogramDataset(Dataset):
             if class_dir.name not in self.label_map:
                 self.label_map[class_dir.name] = len(self.label_map)
             for file in class_dir.glob("*.mp3"):
+                if file is None:
+                    continue
                 trimed_audio, sr = self.audio_preprocessor.load_and_trim_audio(file)
                 if trimed_audio is None:
                     continue

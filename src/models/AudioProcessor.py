@@ -55,7 +55,7 @@ class AudioPreprocessor:
         audio, sr = librosa.load(file_path, sr=self.sample_rate,  duration=self.fixed_length_seconds)
 
         if len(audio) == 0:
-            return None
+            return None, None
 
         audio = self.trim_audio(audio, sr)
 
@@ -65,11 +65,11 @@ class AudioPreprocessor:
         audio, sr = librosa.load(file_path, sr=self.sample_rate, duration=self.fixed_length_seconds)
 
         if len(audio) == 0:
-            return None
+            return None, None
         
         audio = self.trim_audio(audio, sr)
         if audio is None:
-            return None
+            return None, None
         audio = nr.reduce_noise(y=audio, sr=sr)
         if self.normalize_volume:
             audio = librosa.util.normalize(audio)
