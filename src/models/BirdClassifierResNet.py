@@ -2,15 +2,15 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl
-from torchvision import models
+from torchvision.models.resnet import ResNet, ResNet50_Weights
+from torchvision.models import resnet50
 
 class BirdClassifierResNet(pl.LightningModule):
     def __init__(self, num_classes):
         super(BirdClassifierResNet, self).__init__()
 
         # Load pre-trained ResNet50
-        self.feature_extractor = models.resnet50(pretrained=True)
-
+        self.feature_extractor = resnet50(weights=ResNet50_Weights.DEFAULT)
         # Replace the last fully connected layer
         # Parameters of newly constructed modules have requires_grad=True by default
         num_ftrs = self.feature_extractor.fc.in_features

@@ -37,10 +37,11 @@ class BirdSpectrogramDataset(Dataset):
         return mel_spec, label
 
 class BirdSpectrogramDataModule(pl.LightningDataModule):
-    def __init__(self, root_dir, batch_size=16):
+    def __init__(self, root_dir, batch_size=16, num_workers=4):
         super().__init__()
         self.root_dir = root_dir
         self.batch_size = batch_size
+        self.num_workers = num_workers
 
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
@@ -56,10 +57,10 @@ class BirdSpectrogramDataModule(pl.LightningDataModule):
         return datasets
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers)
