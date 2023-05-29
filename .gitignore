@@ -130,4 +130,7 @@ dmypy.json
 
 /data
 
+/wandb
+/bird-classification
+*.ckpt
 .DS_Store
