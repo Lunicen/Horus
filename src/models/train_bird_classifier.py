@@ -57,7 +57,7 @@ def main():
                     logger=wandb_logger,
                     callbacks=[
                         checkpoint_callback,
-                        early_stopping,
+                        #early_stopping,
                     ],  # Add callbacks here
                     log_every_n_steps=1,
                 )
