@@ -54,7 +54,7 @@ class BirdSpectrogramDataModule(pl.LightningDataModule):
                 "train", "validation"
             )
         if stage == "test" or stage is None:
-            self.test_dataset, _ = self._create_datasets("test")
+            self.test_dataset = self._create_datasets("test")[0]
 
     def _create_datasets(self, *splits):
         datasets = []

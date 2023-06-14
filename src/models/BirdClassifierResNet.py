@@ -69,5 +69,29 @@ class BirdClassifierResNet(pl.LightningModule):
         self.log('val_auroc', self.auroc, prog_bar=True)
         return loss
 
+    def test_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        loss = F.cross_entropy(logits, y)
+        preds = torch.argmax(logits, dim=1)
+        
+        # Update metrics
+        self.val_acc(preds, y)
+        self.precision_metric(preds, y)
+        self.recall(preds, y)
+        self.f1(preds, y)
+        # Convert logits to probabilities
+        probs = torch.softmax(logits, dim=1)
+        self.auroc(probs, y)
+        
+        self.log('test_loss', loss, prog_bar=True)
+        self.log('test_acc', self.val_acc, prog_bar=True)
+        self.log('test_precision', self.precision_metric, prog_bar=True)
+        self.log('test_recall', self.recall, prog_bar=True)
+        self.log('test_f1', self.f1, prog_bar=True)
+        self.log('test_auroc', self.auroc, prog_bar=True)
+        return loss
+    
+    
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
