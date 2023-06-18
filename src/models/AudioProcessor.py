@@ -39,7 +39,7 @@ class AudioPreprocessor:
 
     def change_speed(self, audio, sr, speed_factor=1.2):
         return librosa.effects.time_stretch(audio, rate=speed_factor)
-    
+
     def trim_audio(self, audio, sr):
         audio_length = len(audio)
         fixed_length_samples = self.fixed_length_seconds * sr
@@ -50,26 +50,30 @@ class AudioPreprocessor:
             audio = audio[:fixed_length_samples]
 
         return audio
-    
+
     def load_and_trim_audio(self, file_path):
-        audio, sr = librosa.load(file_path, sr=self.sample_rate,  duration=self.fixed_length_seconds)
+        audio, sr = librosa.load(
+            file_path, sr=self.sample_rate, duration=self.fixed_length_seconds
+        )
 
         if len(audio) == 0:
-            return None
+            return None, None
 
         audio = self.trim_audio(audio, sr)
 
         return audio, sr
 
     def preprocess_audio(self, file_path):
-        audio, sr = librosa.load(file_path, sr=self.sample_rate, duration=self.fixed_length_seconds)
+        audio, sr = librosa.load(
+            file_path, sr=self.sample_rate, duration=self.fixed_length_seconds
+        )
 
         if len(audio) == 0:
-            return None
-        
+            return None, None
+
         audio = self.trim_audio(audio, sr)
         if audio is None:
-            return None
+            return None, None
         audio = nr.reduce_noise(y=audio, sr=sr)
         if self.normalize_volume:
             audio = librosa.util.normalize(audio)
@@ -89,7 +93,9 @@ class AudioPreprocessor:
 
     def process_and_save_audio(self, file_path):
         preprocessed_audio, sr = self.preprocess_audio(file_path)
-        target_file_path = self.save_preprocessed_audio(preprocessed_audio, sr, file_path)
+        target_file_path = self.save_preprocessed_audio(
+            preprocessed_audio, sr, file_path
+        )
         return target_file_path
 
     def create_spectrogram(self, file_path, n_fft=2048, hop_length=512):
@@ -109,7 +115,9 @@ class AudioPreprocessor:
 
     def create_mel_spectrogram(self, file_path, n_mels=128, hop_length=512):
         y, sr = librosa.load(file_path, sr=self.sample_rate)
-        return self.create_mel_spectrogram_from_audio(y, sr, n_mels=n_mels, hop_length=hop_length)
+        return self.create_mel_spectrogram_from_audio(
+            y, sr, n_mels=n_mels, hop_length=hop_length
+        )
 
     def save_mel_spectrogram(self, mel_spectrogram_db, target_path, sr, hop_length):
         plt.figure(figsize=(10, 5))
@@ -132,7 +140,8 @@ class AudioPreprocessor:
         mel_spec_path = (
             self.numpy_dir
             / target_path.parent.name
-            / target_path.with_suffix(".npy").name )
+            / target_path.with_suffix(".npy").name
+        )
         plot_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(plot_path)
         plt.close()
@@ -217,7 +226,7 @@ class AudioPreprocessor:
 
                 except Exception as e:
                     print(f"Error processing file {file_path}: {e}")
-                    
+
 
 if __name__ == "__main__":
     audio_preprocessor = AudioPreprocessor()

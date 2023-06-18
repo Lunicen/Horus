@@ -3,13 +3,16 @@ from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl
 
+
 class BirdClassifier(pl.LightningModule):
     def __init__(self, num_classes):
         super(BirdClassifier, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = nn.Linear(239616, 512) # wartości działające ale z dupy do poprawy TODO
+        self.fc1 = nn.Linear(
+            239616, 512
+        )  # wartości działające ale z dupy do poprawy TODO
         self.fc2 = nn.Linear(512, num_classes)
 
     def forward(self, x):
@@ -26,7 +29,9 @@ class BirdClassifier(pl.LightningModule):
         x, y = batch
         logits = self(x)
         loss = F.cross_entropy(logits, y)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(
+            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
